@@ -1,0 +1,72 @@
+﻿Requirements
+1. Track games played and their outcome (who won)
+2. Multiple competitors play in the tournament
+3. Creates a tournament plan (who plays and in what order)
+4. Schedules games.
+5. A single loss eliminates a player.
+6. The last player standing is the winner.
+
+Assumptions
+1. Application can handle any number of players.
+2. People can randomly be advanced to the next level if number of players is not ideal.
+3. Tournament order should be random.
+4. The games should be played in whatever order and whenever the players want them.
+5. There are no set schedules.
+6. A round must finish before the next one continues.
+7. Store a simple score like a basic int for each player.
+8. Desktop app for now. Short-term solution, but can be adapted to a long term one like a web app.
+9. Ideally in Microsoft SQL database, but can be stored via text too.
+10. System can handle entry fees, prizes are an option. Total cash amount should not exceed the income from the tournament.
+11. A simple report per round or at the end of the tournament, can be emailed.
+12. Anyone using the application should be able to fill the game scores.
+13. No varying level of access.
+14. The system should email users when they are due to play in the round.
+15. Tournament tracker can have teams instead of individuals and each team can name theirs.
+
+Big Picture Design - To establish my boundaries
+	Structure: Windows Form application and Class Library
+	Data: SQL and/or Texet File
+	Users: One at a time on one application
+
+Key Concepts
+	Email
+	SQL
+	Custom Events
+	Error Handling
+	Interfaces
+	Random Ordering
+	Phone Texting?
+	
+Mapping the Data
+Team
+	TeamMembers (List<Person>)
+	TeamName (string)
+
+Person
+	FirstName (string)
+	LastName (string)
+	EmailAddress (string)
+	CellphoneNumber (string)
+Tournament
+	TournamentName (string)
+	EntryFee (decimal) - because money
+	EnteredTeams (List<Team>)
+	Prizes (List<Prize>)
+	Rounds (List<List<Matchup>>)
+
+
+Prize
+	PlaceNumber (int)
+	PlaceName (string)
+	PrizeAmount (decimal)
+	PrizePercentage (double)
+
+Matchup
+	Entries (List<MatchupEntry>)
+	Winner (Team)
+	MatchupRound (int)
+
+MatchupEntry
+	TeamCompeting (Team)
+	Score (double)
+	ParentMatchup (Matchup)
