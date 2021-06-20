@@ -150,6 +150,7 @@ namespace TrackerLibrary.DataAccess.TextHelpers
             List<TournamentModel> output = new List<TournamentModel>();
             List<TeamModel> teams = teamFileName.FullFilePath().LoadFile().ConvertToTeamModels(peopleFileName);
             List<PrizeModel> prizes = prizeFileName.FullFilePath().LoadFile().ConvertToPrizeModels();
+            List<MatchupModel> matchups = GlobalConfigure.MatchupFile.FullFilePath().LoadFile().ConvertToMatchupModels();
 
 
 
@@ -177,6 +178,29 @@ namespace TrackerLibrary.DataAccess.TextHelpers
                 }
 
                 // TODO - Capture Rounds information
+                string[] rounds = cols[5].Split('|');
+
+
+
+
+                List<MatchupModel> ms = new List<MatchupModel>();
+
+
+                foreach (string round in rounds)
+                {
+                    string[] msText = round.Split('^');
+
+                    foreach (string matchupModelTextId in msText)
+                    {
+                        ms.Add(matchups.Where(x => x.Id == int.Parse(matchupModelTextId)).First());
+                    }
+
+                    tm.Rounds.Add(ms);
+                   
+                }
+
+
+
 
                 output.Add(tm);
 
@@ -257,7 +281,16 @@ namespace TrackerLibrary.DataAccess.TextHelpers
                 MatchupEntryModel me = new MatchupEntryModel();
 
                 me.Id = int.Parse(cols[0]);
-                me.TeamCompeting = LookupTeamById(int.Parse(cols[1]));
+
+                if (cols[1].Length == 0)
+                {
+                    me.TeamCompeting = null;
+                }
+                else
+                {
+                    me.TeamCompeting = LookupTeamById(int.Parse(cols[1]));
+                }
+
                 me.Score = double.Parse(cols[2]);
 
                 int parentId = 0;
@@ -342,6 +375,7 @@ namespace TrackerLibrary.DataAccess.TextHelpers
 
             matchup.Id = currentId;
 
+            matchups.Add(matchup);
 
             foreach (MatchupEntryModel entry in matchup.Entries)
             {
@@ -361,10 +395,30 @@ namespace TrackerLibrary.DataAccess.TextHelpers
                 }
 
 
+                lines.Add($"{ m.Id }, { "" } { winner }, { m.MatchupRound }");
+            }
+
+            File.WriteAllLines(GlobalConfigure.MatchupFile.FullFilePath(), lines);
+
+
+            // save to file 
+            lines = new List<string>();
+
+            //id = 0, entries = 1(pipe delimited  by id), winner = 2, matchupRound = 3
+            foreach (MatchupModel m in matchups)
+            {
+                string winner = "";
+                if (m.Winner != null)
+                {
+                    winner = m.Winner.Id.ToString();
+                }
+
+
                 lines.Add($"{ m.Id }, { ConvertMatchupEntryListToString(m.Entries) } { winner }, { m.MatchupRound }");
             }
 
             File.WriteAllLines(GlobalConfigure.MatchupFile.FullFilePath(), lines);
+
         }
 
         public static void SaveEntryToFile(this MatchupEntryModel entry, string matchupEntryFile)
@@ -393,7 +447,13 @@ namespace TrackerLibrary.DataAccess.TextHelpers
                     parent = e.ParentMatchup.Id.ToString();
                 }
 
-                lines.Add($"{ e. Id },{ e.TeamCompeting.Id }, { e.Score}, { e.ParentMatchup.Id }");
+                string teamCompeting = "";
+                if(e.TeamCompeting != null)
+                {
+                    teamCompeting = e.TeamCompeting.Id.ToString();
+                }
+
+                lines.Add($"{ e. Id },{ teamCompeting }, { e.Score}, { parent }");
 
             }
 
